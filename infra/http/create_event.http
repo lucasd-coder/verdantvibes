@@ -1,0 +1,13 @@
+POST http://localhost:8080/event HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Lucas",
+  "description": "test",
+  "location": "bairro da marias",
+  "start_date": "2024-09-28 17:45:30.123456",
+  "end_date": "2024-09-28 17:45:30.123456",
+  "max_participants": 20,
+  "organizer_id": 10,
+  "sustainable_practice": ["CollectiveTransport"]
+}

@@ -1,8 +1,12 @@
 mod config;
 
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use config::AppConfig;
+use controller::event_controller::salve;
+use dotenvy::dotenv;
+use sqlx::PgPool;
 
+use std::env;
 use std::io::stdout;
 use std::str::FromStr;
 use tracing_actix_web::TracingLogger;
@@ -10,6 +14,10 @@ use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt::format::FmtSpan;
 
 use tracing::error;
+
+pub mod domain;
+
+mod controller;
 
 fn setup_tracing(log_level: &str) {
     let level = LevelFilter::from_str(log_level).unwrap_or(LevelFilter::TRACE);
@@ -40,16 +48,28 @@ fn setup_tracing(log_level: &str) {
 
 #[actix_web::main]
 async fn main() {
+    dotenv().ok();
+
     let config = AppConfig::new();
 
     setup_tracing(&config.logging.level);
 
-    HttpServer::new(move || App::new().wrap(TracingLogger::default()).service(health))
-        .bind((config.server.host, config.server.port))
-        .expect("Unable to bind server")
-        .run()
+    let pool = PgPool::connect(&env::var("DATABASE_URL").expect("TODO"))
         .await
-        .expect("Failed to start web server")
+        .expect("TODO");
+
+    HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .wrap(TracingLogger::default())
+            .service(health)
+            .service(salve)
+    })
+    .bind((config.server.host, config.server.port))
+    .expect("Unable to bind server")
+    .run()
+    .await
+    .expect("Failed to start web server")
 }
 
 #[get("/health")]
