@@ -57,6 +57,7 @@ pub struct EventDTO {
 
 pub mod parse_time {
     use chrono::naive::NaiveDateTime;
+    use serde::de::Error as SerdeError;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
     pub fn serialize<S>(dt: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
@@ -74,8 +75,8 @@ pub mod parse_time {
     {
         let t = String::deserialize(deserializer)?;
         // it doesn't try to handle the error, just unwraps
-        let d = NaiveDateTime::parse_from_str(&t, "%Y-%m-%d %H:%M:%S%.f").unwrap();
-        Ok(d)
+        NaiveDateTime::parse_from_str(&t, "%Y-%m-%d %H:%M:%S%.f")
+            .map_err(|e| D::Error::custom(format!("Error when parse datetime: {}", e)))
     }
 }
 

@@ -54,9 +54,11 @@ async fn main() {
 
     setup_tracing(&config.logging.level);
 
-    let pool = PgPool::connect(&env::var("DATABASE_URL").expect("TODO"))
-        .await
-        .expect("TODO");
+    let pool = PgPool::connect(
+        &env::var("DATABASE_URL").expect("DATABASE_URL environment variable must be set"),
+    )
+    .await
+    .expect("Failed to connect to the database");
 
     HttpServer::new(move || {
         App::new()

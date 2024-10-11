@@ -19,7 +19,8 @@
 				"VisualStudioExptTeam.vscodeintellicode",
 				"fill-labs.dependi",
 				"humao.rest-client",
-				"redhat.vscode-yaml"
+				"redhat.vscode-yaml",
+				"MS-CEINTL.vscode-language-pack-pt-BR"
 			]
         }
   },
