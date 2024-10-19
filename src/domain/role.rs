@@ -1,7 +1,8 @@
-#[derive(sqlx::Type, Debug)]
-#[sqlx(type_name = "role_type")]
-#[sqlx(rename_all = "lowercase")]
-enum Role {
+use serde::Deserialize;
+
+#[derive(sqlx::Type, Debug, Clone, Copy, Deserialize)]
+#[sqlx(type_name = "role")]
+pub enum Role {
     Organizer,
     Participant,
 }

@@ -2,7 +2,8 @@ mod config;
 
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use config::AppConfig;
-use controller::event_controller::salve;
+use controller::event_controller::save as event_save;
+use controller::user_controller::save as user_save;
 use dotenvy::dotenv;
 use sqlx::PgPool;
 
@@ -16,6 +17,7 @@ use tracing_subscriber::fmt::format::FmtSpan;
 use tracing::error;
 
 pub mod domain;
+pub mod shared;
 
 mod controller;
 
@@ -65,7 +67,8 @@ async fn main() {
             .app_data(web::Data::new(pool.clone()))
             .wrap(TracingLogger::default())
             .service(health)
-            .service(salve)
+            .service(event_save)
+            .service(user_save)
     })
     .bind((config.server.host, config.server.port))
     .expect("Unable to bind server")

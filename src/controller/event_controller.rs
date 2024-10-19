@@ -2,12 +2,12 @@ use actix_web::{web, HttpResponse};
 use sqlx::postgres::PgPool;
 use tracing::error;
 
+use crate::controller::APIResult;
 use crate::domain::event::service::create_event;
 use crate::domain::event::EventDTO;
-pub type APIResult = Result<HttpResponse, Box<dyn std::error::Error>>;
 
-#[actix_web::post("/event")]
-pub async fn salve(pool: web::Data<PgPool>, payload: web::Json<EventDTO>) -> APIResult {
+#[actix_web::post("/events")]
+pub async fn save(pool: web::Data<PgPool>, payload: web::Json<EventDTO>) -> APIResult {
     let dto = EventDTO {
         name: payload.name.clone(),
         description: payload.description.clone(),
