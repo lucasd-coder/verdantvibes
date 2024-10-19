@@ -16,6 +16,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        sudo apt update 
+        sudo apt install -y lld pkg-config libssl-dev
+        cargo install sqlx-cli
     - name: Build
       run: cargo build --verbose
     - name: Run tests
