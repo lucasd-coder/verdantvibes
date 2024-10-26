@@ -17,3 +17,4 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 sqlx = { version = "0.8", features = ["postgres", "runtime-tokio", "tls-native-tls", "any", "chrono", "time"] }
 anyhow = { version = "1.0.88" , default-features = false }
 dotenvy = "0.15.7"
+serde_json = "1.0.132"

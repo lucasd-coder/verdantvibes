@@ -15,8 +15,7 @@ pub async fn save(pool: web::Data<PgPool>, payload: web::Json<UserDTO>) -> APIRe
     };
 
     match create_user(&pool, dto).await {
-        Ok(()) => Ok(HttpResponse::Created().finish()),
-
+        Ok(r) => Ok(r.http_response()),
         Err(e) => {
             error!("Failed to create user: {:?}", e);
             Ok(HttpResponse::InternalServerError().finish())

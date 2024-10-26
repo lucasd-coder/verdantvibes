@@ -20,9 +20,7 @@ pub async fn save(pool: web::Data<PgPool>, payload: web::Json<EventDTO>) -> APIR
     };
 
     match create_event(&pool, dto).await {
-        Ok(()) => Ok(HttpResponse::Created()
-            //.insert_header(("Location", format!("/events/{}", event_id)))
-            .finish()),
+        Ok(()) => Ok(HttpResponse::Created().finish()),
         Err(e) => {
             error!("Failed to create event: {:?}", e);
             Ok(HttpResponse::InternalServerError().finish())

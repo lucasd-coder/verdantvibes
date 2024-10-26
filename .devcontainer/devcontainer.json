@@ -20,7 +20,8 @@
 				"fill-labs.dependi",
 				"humao.rest-client",
 				"redhat.vscode-yaml",
-				"MS-CEINTL.vscode-language-pack-pt-BR"
+				"MS-CEINTL.vscode-language-pack-pt-BR",
+				"sourcegraph.cody-ai"
 			]
         }
   },

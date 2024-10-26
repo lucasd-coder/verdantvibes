@@ -62,6 +62,11 @@ async fn main() {
     .await
     .expect("Failed to connect to the database");
 
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("Failed to run migration");
+
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
