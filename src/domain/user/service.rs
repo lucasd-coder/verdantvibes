@@ -1,71 +1,73 @@
-use crate::domain::{user::User, user::UserDTO};
-use serde_json::value::RawValue as JsonRawValue;
+use std::sync::Arc;
+
+use crate::domain::user::repository::{Repository, UserRepository};
+use crate::domain::user::UserDTO;
+
+use async_trait::async_trait;
 use sqlx::postgres::PgPool;
 use sqlx::Error;
-use sqlx::Row;
 use tracing::error;
 
 use crate::domain::response::Response;
 
-pub async fn create_user(pool: &PgPool, dto: UserDTO) -> anyhow::Result<Response> {
-    match find_by_email(pool, dto.email.clone()).await {
-        Ok(_) => Ok(Response {
-            status: Some(400),
-            message: Some(String::from("Email already exists")),
-        }),
-        Err(Error::RowNotFound) => save_user(pool, dto).await,
-        Err(e) => {
-            error!("Failed to find user by email: {:?}", e);
-            Ok(Response {
-                status: Some(500),
-                message: Some(String::from("Failed to find user by email")),
-            })
-        }
+#[async_trait]
+impl ServiceFactory<UserService> for UserServiceFactory {
+    async fn create_service(&self, pool: PgPool) -> Result<Arc<UserService>, anyhow::Error> {
+        let repository: Arc<dyn Repository + Send + Sync> = Arc::new(UserRepository::new(pool));
+        let service = Arc::new(UserService::new(repository));
+        Ok(service)
     }
 }
 
-pub async fn find_by_email(pool: &PgPool, email: String) -> anyhow::Result<UserDTO, sqlx::Error> {
-    let rec = sqlx::query(
-        r#"
-    SELECT name, email, roles FROM users
-    WHERE email = $1"#,
-    )
-    .bind(&email)
-    .fetch_one(pool)
-    .await?;
-
-    let value: &JsonRawValue = rec.try_get(0)?;
-
-    let dto = serde_json::from_str(value.get()).map_err(|e| {
-        error!("Failed to deserialize user data: {}", e);
-        sqlx::Error::ColumnDecode {
-            index: "json decode".to_string(),
-            source: Box::new(e),
-        }
-    })?;
-
-    Ok(dto)
+#[async_trait]
+pub trait ServiceFactory<T> {
+    async fn create_service(&self, pool: PgPool) -> Result<Arc<T>, anyhow::Error>;
 }
 
-pub async fn save_user(pool: &PgPool, dto: UserDTO) -> anyhow::Result<Response> {
-    let user = User::new(dto);
+pub struct UserServiceFactory;
 
-    sqlx::query(
-        r#"
-      INSERT INTO users (name, email, password_hash, roles, created_at)
-      VALUES ($1, $2, $3, $4, $5)
-    "#,
-    )
-    .bind(&user.name)
-    .bind(&user.email)
-    .bind(&user.password_hash)
-    .bind(&user.roles)
-    .bind(user.created_at)
-    .execute(pool)
-    .await?;
+pub struct UserService {
+    repository: Arc<dyn Repository + Send + Sync>,
+}
 
-    Ok(Response {
-        status: Some(201),
-        message: Some(String::from("User created")),
-    })
+#[async_trait]
+pub trait Service {
+    async fn create_user(&self, dto: UserDTO) -> anyhow::Result<Response>;
+    async fn find_by_email(&self, email: String) -> anyhow::Result<UserDTO, sqlx::Error>;
+}
+
+impl UserService {
+    pub fn new(repository: Arc<dyn Repository + Send + Sync>) -> UserService {
+        UserService { repository }
+    }
+}
+
+#[async_trait]
+impl Service for UserService {
+    async fn create_user(&self, dto: UserDTO) -> anyhow::Result<Response> {
+        match self.find_by_email(dto.email.clone()).await {
+            Ok(_) => Ok(Response {
+                status: Some(400),
+                message: Some(String::from("Email already exists")),
+            }),
+            Err(Error::RowNotFound) => self.create_user(dto).await,
+            Err(e) => {
+                error!("Failed to find user by email: {:?}", e);
+                Ok(Response {
+                    status: Some(500),
+                    message: Some(String::from("Failed to find user by email")),
+                })
+            }
+        }
+    }
+
+    async fn find_by_email(&self, email: String) -> anyhow::Result<UserDTO, sqlx::Error> {
+        let user = self.repository.find_by_email(email).await?;
+        Ok(UserDTO {
+            name: user.name,
+            email: user.email,
+            password: String::from(""),
+            roles: user.roles,
+        })
+    }
 }
