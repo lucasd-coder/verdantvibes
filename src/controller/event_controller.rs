@@ -2,9 +2,8 @@ use actix_web::{web, HttpResponse};
 use sqlx::postgres::PgPool;
 use tracing::error;
 
-use crate::controller::APIResult;
-use crate::domain::event::service::create_event;
-use crate::domain::event::EventDTO;
+use crate::domain::event::service::{EventServiceFactory, Service, ServiceFactory};
+use crate::{controller::APIResult, domain::event::EventDTO};
 
 #[actix_web::post("/events")]
 pub async fn save(pool: web::Data<PgPool>, payload: web::Json<EventDTO>) -> APIResult {
@@ -19,8 +18,11 @@ pub async fn save(pool: web::Data<PgPool>, payload: web::Json<EventDTO>) -> APIR
         sustainable_practice: payload.sustainable_practice.clone(),
     };
 
-    match create_event(&pool, dto).await {
-        Ok(()) => Ok(HttpResponse::Created().finish()),
+    let factory = EventServiceFactory;
+
+    let event_service = factory.create_service(pool.get_ref().clone()).await?;
+    match event_service.create_event(dto).await {
+        Ok(r) => Ok(r.http_response()),
         Err(e) => {
             error!("Failed to create event: {:?}", e);
             Ok(HttpResponse::InternalServerError().finish())

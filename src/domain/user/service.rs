@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::domain::user::repository::{Repository, UserRepository};
-use crate::domain::user::UserDTO;
+use crate::domain::user::{User, UserDTO};
 
 use async_trait::async_trait;
 use sqlx::postgres::PgPool;
@@ -45,12 +45,25 @@ impl UserService {
 #[async_trait]
 impl Service for UserService {
     async fn create_user(&self, dto: UserDTO) -> anyhow::Result<Response> {
-        match self.find_by_email(dto.email.clone()).await {
+        let user = User::new(dto);
+        match self.find_by_email(user.email.clone()).await {
             Ok(_) => Ok(Response {
                 status: Some(400),
                 message: Some(String::from("Email already exists")),
             }),
-            Err(Error::RowNotFound) => self.create_user(dto).await,
+            Err(Error::RowNotFound) => match self.repository.save(user).await {
+                Ok(_) => Ok(Response {
+                    status: Some(201),
+                    message: Some(String::from("User created")),
+                }),
+                Err(e) => {
+                    error!("Failed to create user: {:?}", e);
+                    Ok(Response {
+                        status: Some(500),
+                        message: Some(String::from("Failed to create user")),
+                    })
+                }
+            },
             Err(e) => {
                 error!("Failed to find user by email: {:?}", e);
                 Ok(Response {
