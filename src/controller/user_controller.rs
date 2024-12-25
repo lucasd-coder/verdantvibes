@@ -2,7 +2,7 @@ use actix_web::{web, HttpResponse};
 use sqlx::postgres::PgPool;
 use tracing::error;
 
-use crate::domain::user::service::{Service, ServiceFactory, UserServiceFactory};
+use crate::domain::user::service::{UserService, ServiceFactory, UserServiceFactory};
 use crate::{controller::APIResult, domain::user::UserDTO};
 
 #[actix_web::post("/users")]

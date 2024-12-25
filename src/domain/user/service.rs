@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::domain::user::repository::{Repository, UserRepository};
+use crate::domain::user::repository::{UserRepository, UserRepositoryImpl};
 use crate::domain::user::{User, UserDTO};
 
 use async_trait::async_trait;
@@ -11,10 +11,10 @@ use tracing::error;
 use crate::domain::response::Response;
 
 #[async_trait]
-impl ServiceFactory<UserService> for UserServiceFactory {
-    async fn create_service(&self, pool: PgPool) -> Result<Arc<UserService>, anyhow::Error> {
-        let repository: Arc<dyn Repository + Send + Sync> = Arc::new(UserRepository::new(pool));
-        let service = Arc::new(UserService::new(repository));
+impl ServiceFactory<UserServiceImpl> for UserServiceFactory {
+    async fn create_service(&self, pool: PgPool) -> Result<Arc<UserServiceImpl>, anyhow::Error> {
+        let repository: Arc<dyn UserRepository + Send + Sync> = Arc::new(UserRepositoryImpl::new(pool));
+        let service = Arc::new(UserServiceImpl::new(repository));
         Ok(service)
     }
 }
@@ -26,24 +26,25 @@ pub trait ServiceFactory<T> {
 
 pub struct UserServiceFactory;
 
-pub struct UserService {
-    repository: Arc<dyn Repository + Send + Sync>,
+pub struct UserServiceImpl {
+    repository: Arc<dyn UserRepository + Send + Sync>,
 }
 
 #[async_trait]
-pub trait Service {
+pub trait UserService {
     async fn create_user(&self, dto: UserDTO) -> anyhow::Result<Response>;
     async fn find_by_email(&self, email: String) -> anyhow::Result<UserDTO, sqlx::Error>;
+    async fn find_by_id(&self, id: i32) -> anyhow::Result<UserDTO, sqlx::Error>;
 }
 
-impl UserService {
-    pub fn new(repository: Arc<dyn Repository + Send + Sync>) -> UserService {
-        UserService { repository }
+impl UserServiceImpl {
+    pub fn new(repository: Arc<dyn UserRepository + Send + Sync>) -> UserServiceImpl {
+        UserServiceImpl { repository }
     }
 }
 
 #[async_trait]
-impl Service for UserService {
+impl UserService for UserServiceImpl {
     async fn create_user(&self, dto: UserDTO) -> anyhow::Result<Response> {
         let user = User::new(dto);
         match self.find_by_email(user.email.clone()).await {
@@ -76,6 +77,16 @@ impl Service for UserService {
 
     async fn find_by_email(&self, email: String) -> anyhow::Result<UserDTO, sqlx::Error> {
         let user = self.repository.find_by_email(email).await?;
+        Ok(UserDTO {
+            name: user.name,
+            email: user.email,
+            password: String::from(""),
+            roles: user.roles,
+        })
+    }
+
+    async fn find_by_id(&self, id: i32) -> anyhow::Result<UserDTO, sqlx::Error> {
+        let user = self.repository.find_by_id(id).await?;
         Ok(UserDTO {
             name: user.name,
             email: user.email,

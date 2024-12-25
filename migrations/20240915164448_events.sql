@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS events (
     max_participants INT DEFAULT 0,
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
-    organizer_id INT REFERENCES users(id),
+    organizer_id INT REFERENCES backend.users(id),
     sustainable_practices backend.sustainable_practice[] NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()

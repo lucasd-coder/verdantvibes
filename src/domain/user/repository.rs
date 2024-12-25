@@ -6,24 +6,25 @@ use chrono::NaiveDateTime;
 use sqlx::postgres::PgPool;
 use sqlx::Row;
 
-pub struct UserRepository {
+pub struct UserRepositoryImpl {
     pool: PgPool,
 }
 
 #[async_trait]
-pub trait Repository {
+pub trait UserRepository {
     async fn find_by_email(&self, email: String) -> anyhow::Result<User, sqlx::Error>;
     async fn save(&self, user: User) -> anyhow::Result<i32, sqlx::Error>;
+    async fn find_by_id(&self, id: i32) -> anyhow::Result<User, sqlx::Error>;
 }
 
-impl UserRepository {
-    pub fn new(pool: PgPool) -> UserRepository {
-        UserRepository { pool }
+impl UserRepositoryImpl {
+    pub fn new(pool: PgPool) -> UserRepositoryImpl {
+        UserRepositoryImpl { pool }
     }
 }
 
 #[async_trait]
-impl Repository for UserRepository {
+impl UserRepository for UserRepositoryImpl {
     async fn find_by_email(&self, email: String) -> anyhow::Result<User, sqlx::Error> {
         let row: (String, String, Vec<Role>) = sqlx::query_as(
             r#"
@@ -62,5 +63,26 @@ impl Repository for UserRepository {
 
         let id: i32 = result.get::<i32, _>(0);
         Ok(id)
+    }
+
+    async fn find_by_id(&self, id: i32) -> anyhow::Result<User, sqlx::Error> {
+        let row: (String, String, Vec<Role>) = sqlx::query_as(
+            r#"
+              SELECT name, email, roles FROM users
+              WHERE id = $1"#,
+        )
+        .bind(id)
+        .fetch_one(&self.pool)
+        .await?;
+        let user = User {
+            id,
+            name: row.0,
+            email: row.1,
+            password_hash: String::from(""),
+            roles: row.2,
+            updated_at: convert_chrono_to_sqlx(NaiveDateTime::default()),
+            created_at: convert_chrono_to_sqlx(NaiveDateTime::default()),
+        };
+        Ok(user)
     }
 }

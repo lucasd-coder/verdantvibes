@@ -4,23 +4,23 @@ use sqlx::Row;
 
 use crate::domain::event::Event;
 
-pub struct EventRepository {
+pub struct EventRepositoryImpl {
     pool: PgPool,
 }
 
 #[async_trait]
-pub trait Repository {
+pub trait EventRepository {
     async fn save(&self, event: Event) -> anyhow::Result<i32, sqlx::Error>;
 }
 
-impl EventRepository {
-    pub fn new(pool: PgPool) -> EventRepository {
-        EventRepository { pool }
+impl EventRepositoryImpl {
+    pub fn new(pool: PgPool) -> EventRepositoryImpl {
+        EventRepositoryImpl { pool }
     }
 }
 
 #[async_trait]
-impl Repository for EventRepository {
+impl EventRepository for EventRepositoryImpl {
     async fn save(&self, event: Event) -> anyhow::Result<i32, sqlx::Error> {
         let result = sqlx::query(
             r#"

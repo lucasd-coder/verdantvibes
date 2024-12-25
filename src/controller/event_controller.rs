@@ -2,7 +2,7 @@ use actix_web::{web, HttpResponse};
 use sqlx::postgres::PgPool;
 use tracing::error;
 
-use crate::domain::event::service::{EventServiceFactory, Service, ServiceFactory};
+use crate::domain::event::service::{EventServiceFactory, EventService, ServiceFactory};
 use crate::{controller::APIResult, domain::event::EventDTO};
 
 #[actix_web::post("/events")]
