@@ -13,8 +13,8 @@ pub struct UserRepositoryImpl {
 #[async_trait]
 pub trait UserRepository {
     async fn find_by_email(&self, email: String) -> anyhow::Result<User, sqlx::Error>;
-    async fn save(&self, user: User) -> anyhow::Result<i32, sqlx::Error>;
-    async fn find_by_id(&self, id: i32) -> anyhow::Result<User, sqlx::Error>;
+    async fn save(&self, user: User) -> anyhow::Result<i64, sqlx::Error>;
+    async fn find_by_id(&self, id: i64) -> anyhow::Result<User, sqlx::Error>;
 }
 
 impl UserRepositoryImpl {
@@ -28,7 +28,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn find_by_email(&self, email: String) -> anyhow::Result<User, sqlx::Error> {
         let row: (String, String, Vec<Role>) = sqlx::query_as(
             r#"
-              SELECT name, email, roles FROM users
+              SELECT name, email, roles FROM backend.users
               WHERE email = $1"#,
         )
         .bind(&email)
@@ -46,10 +46,10 @@ impl UserRepository for UserRepositoryImpl {
         Ok(user)
     }
 
-    async fn save(&self, user: User) -> anyhow::Result<i32, sqlx::Error> {
+    async fn save(&self, user: User) -> anyhow::Result<i64, sqlx::Error> {
         let result = sqlx::query(
             r#"
-                INSERT INTO users (name, email, password_hash, roles, created_at)
+                INSERT INTO backend.users (name, email, password_hash, roles, created_at)
                 VALUES ($1, $2, $3, $4, $5)
                 RETURNING id"#,
         )
@@ -61,14 +61,14 @@ impl UserRepository for UserRepositoryImpl {
         .fetch_one(&self.pool)
         .await?;
 
-        let id: i32 = result.get::<i32, _>(0);
+        let id: i64 = result.get::<i64, _>(0);
         Ok(id)
     }
 
-    async fn find_by_id(&self, id: i32) -> anyhow::Result<User, sqlx::Error> {
+    async fn find_by_id(&self, id: i64) -> anyhow::Result<User, sqlx::Error> {
         let row: (String, String, Vec<Role>) = sqlx::query_as(
             r#"
-              SELECT name, email, roles FROM users
+              SELECT name, email, roles FROM backend.users
               WHERE id = $1"#,
         )
         .bind(id)

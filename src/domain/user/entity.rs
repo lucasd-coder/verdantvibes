@@ -8,7 +8,7 @@ use crate::shared::time::convert_chrono_to_sqlx;
 
 #[derive(Debug, FromRow)]
 pub struct User {
-    pub id: i32,
+    pub id: i64,
     pub name: String,
     pub email: String,
     pub password_hash: String,

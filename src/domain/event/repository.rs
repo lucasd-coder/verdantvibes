@@ -10,7 +10,7 @@ pub struct EventRepositoryImpl {
 
 #[async_trait]
 pub trait EventRepository {
-    async fn save(&self, event: Event) -> anyhow::Result<i32, sqlx::Error>;
+    async fn save(&self, event: Event) -> anyhow::Result<i64, sqlx::Error>;
 }
 
 impl EventRepositoryImpl {
@@ -21,7 +21,7 @@ impl EventRepositoryImpl {
 
 #[async_trait]
 impl EventRepository for EventRepositoryImpl {
-    async fn save(&self, event: Event) -> anyhow::Result<i32, sqlx::Error> {
+    async fn save(&self, event: Event) -> anyhow::Result<i64, sqlx::Error> {
         let result = sqlx::query(
             r#"
             INSERT INTO events (name, description, location, start_date, end_date, organizer_id, sustainable_practices)
@@ -38,7 +38,7 @@ impl EventRepository for EventRepositoryImpl {
         .fetch_one(&self.pool)
         .await?;
 
-        let id: i32 = result.get::<i32, _>(0);
+        let id: i64 = result.get::<i64, _>(0);
         Ok(id)
     }
 }

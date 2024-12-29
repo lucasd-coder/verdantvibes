@@ -3,28 +3,28 @@ use sqlx::FromRow;
 
 #[derive(FromRow)]
 struct FeedBack {
-    id: i32,
-    event_id: i32,
-    user_id: i32,
-    rating: i32,
+    id: i64,
+    event_id: i64,
+    user_id: i64,
+    rating: i64,
     comments: Vec<String>,
     created_at: NaiveDateTime,
 }
 
 impl FeedBack {
-    pub fn id(&self) -> i32 {
+    pub fn id(&self) -> i64 {
         self.id
     }
 
-    pub fn event_id(&self) -> i32 {
+    pub fn event_id(&self) -> i64 {
         self.event_id
     }
 
-    pub fn user_id(&self) -> i32 {
+    pub fn user_id(&self) -> i64 {
         self.user_id
     }
 
-    pub fn rating(&self) -> i32 {
+    pub fn rating(&self) -> i64 {
         self.rating
     }
 

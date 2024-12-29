@@ -4,9 +4,9 @@ use chrono::NaiveDateTime;
 
 #[derive(Debug, FromRow)]
 struct Participant {
-    id: i32,
-    event_id: i32,
-    user_id: i32,
+    id: i64,
+    event_id: i64,
+    user_id: i64,
     ticket_type: String,
     checked_in: bool,
     created_at: NaiveDateTime,
@@ -14,15 +14,15 @@ struct Participant {
 }
 
 impl Participant {
-    pub fn id(&self) -> i32 {
+    pub fn id(&self) -> i64 {
         self.id
     }
 
-    pub fn event_id(&self) -> i32 {
+    pub fn event_id(&self) -> i64 {
         self.event_id
     }
 
-    pub fn user_id(&self) -> i32 {
+    pub fn user_id(&self) -> i64 {
         self.user_id
     }
 

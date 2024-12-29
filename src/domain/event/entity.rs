@@ -7,14 +7,14 @@ use crate::shared::time::{convert_chrono_to_sqlx, parse_time};
 
 #[derive(Debug, FromRow)]
 pub struct Event {
-    pub id: i32,
+    pub id: i64,
     pub name: String,
     pub description: String,
     pub location: String,
     pub start_date: PrimitiveDateTime,
     pub end_date: PrimitiveDateTime,
-    pub organizer_id: i32,
-    pub max_participants: i32,
+    pub organizer_id: i64,
+    pub max_participants: i64,
     pub created_at: PrimitiveDateTime,
     pub updated_at: PrimitiveDateTime,
     pub sustainable_practice: Vec<SustainablePractice>,
@@ -47,7 +47,7 @@ pub struct EventDTO {
     pub start_date: NaiveDateTime,
     #[serde(with = "parse_time")]
     pub end_date: NaiveDateTime,
-    pub organizer_id: i32,
-    pub max_participants: i32,
+    pub organizer_id: i64,
+    pub max_participants: i64,
     pub sustainable_practice: Vec<SustainablePractice>,
 }

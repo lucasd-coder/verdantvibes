@@ -34,7 +34,7 @@ pub struct UserServiceImpl {
 pub trait UserService {
     async fn create_user(&self, dto: UserDTO) -> anyhow::Result<Response>;
     async fn find_by_email(&self, email: String) -> anyhow::Result<UserDTO, sqlx::Error>;
-    async fn find_by_id(&self, id: i32) -> anyhow::Result<UserDTO, sqlx::Error>;
+    async fn find_by_id(&self, id: i64) -> anyhow::Result<UserDTO, sqlx::Error>;
 }
 
 impl UserServiceImpl {
@@ -85,7 +85,7 @@ impl UserService for UserServiceImpl {
         })
     }
 
-    async fn find_by_id(&self, id: i32) -> anyhow::Result<UserDTO, sqlx::Error> {
+    async fn find_by_id(&self, id: i64) -> anyhow::Result<UserDTO, sqlx::Error> {
         let user = self.repository.find_by_id(id).await?;
         Ok(UserDTO {
             name: user.name,
